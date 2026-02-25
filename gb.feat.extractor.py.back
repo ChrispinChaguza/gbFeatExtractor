@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import glob
+from Bio import SeqIO
+
+def main():
+
+    inputSeqFile=str(sys.argv[1]).lower()
+    inputSeqFormat=str("genbank").lower()
+    outputFormat=str("fasta").lower()
+    seqFeatureType=str("CDS").lower()
+    translateCodingSeq=False
+
+    seqObj=SeqIO.read(str(inputSeqFile,inputSeqFormat)
+
+    dnaSeqName = seqObj.name
+    dnaSeqXRefs = seqObj.dbxrefs
+    dnaSeqID = seqObj.id
+
+    dnaSeqAnnotationsRefs = {}
+
+    #for annotItems in seqObj.annotations:
+    #    dnaSeqAnnotationsRefs[annotItemID]=[]
+
+    #    for annotKey in [i for i in dir(annotItems) if not (i.startswith("__") and i.endswith("__"))]:
+    #        dnaSeqAnnotationsRefs[annotItemID].append({annotKey=getattr(annotItems,annotKey)})
+
+    for seqFeat in seqObj.features:
+        dnaSeq = []
+
+        if seqFeat.location.strand == 1:
+            for loc in seqFeat.location.parts:
+                dnaSeq.append(str(seqObj.seq[seqFeat.location.start:seqFeat.location.end]))
+        else:
+            for loc in seqFeat.location.parts:
+                dnaSeq.append(str(seqObj.seq[loc.start:loc.end].reverse_complement()))
+
+        seqFeatType = seqFeat.type
+        locusTagName = ""
+        ProductName = ""
+        GeneName = ""
+        featSeqNuc = ''.join(dnaSeq)
+        featSeqAA = ""
+
+        if translateCodingSeq==True and seqFeatType=="cds":
+            featSeqAA = Seq.Seq(''.join(dnaSeq)).translate()
+        else:
+            featSeqAA = ""
+
+        if 'locus_tag' in seqFeat.qualifiers.keys():
+            locusTagName = seqFeat.qualifiers['locus_tag'][0]
+        else:
+            locusTagName = "Unknown"
+
+        if 'gene' in seqFeat.qualifiers.keys():
+            GeneName = seqFeat.qualifiers['gene'][0]
+        else:
+            GeneName = "Unknown"
+
+        if 'product' in seqFeat.qualifiers.keys():
+            ProductName = seqFeat.qualifiers['product'][0]
+        else:
+            ProductName = "Unknown"
+
+        if outputFormat=="fasta":
+            print(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeq}")
+        elif outputFormat=="csv":
+            print(f"\"{seqName}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeq}")
+        elif outputFormat=="tsv":                        
+            print(f"\"{seqName}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeq}")
+        else:
+            pass
+
+if __name__=="__main__":
+    main()
