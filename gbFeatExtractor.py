@@ -66,15 +66,25 @@ def main():
         pass
 
     with open(outputSeqFile,"w") as outputData:
-        if outputFormat!="fasta":
-            if verbose==True:
-                print("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence")
+        if translateCodingSeq==True:
+            if outputFormat!="fasta":
+                if verbose==True:
+                    print("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence\tAASequence")
+                else:
+                    pass
+                outputData.write("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence\tAASequence\n")
             else:
                 pass
-            outputData.write("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence\n")
         else:
-            pass
- 
+            if outputFormat!="fasta":
+                if verbose==True:
+                    print("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence")
+                else:
+                    pass
+                outputData.write("SequenceName\tFeatureType\tFeatureLength\tLocusTag\tGeneName\tProduct\tNucSequence\n")
+            else:
+                pass
+
         seqObj=SeqIO.read(inputSeqFile,inputSeqFormat)
 
         for seqFeat in seqObj.features:
@@ -93,7 +103,7 @@ def main():
                     dnaSeq.append(str(seqObj.seq[loc.start:loc.end].reverse_complement()))
 
             seqName = seqObj.id
-            seqFeatType = seqFeat.type
+            seqFeatType = str(seqFeat.type).lower()
             locusTagName = ""
             ProductName = ""
             GeneName = ""
@@ -101,6 +111,13 @@ def main():
             featSeqAA = ""
             featSeqLenNuc = len(featSeqNuc)
             featSeqLenAA = len(featSeqAA) 
+
+            if (seqFeatType==seqFeatureType) or (seqFeatureType=="all"):
+                pass
+            else:
+                continue
+
+            seqFeatType = seqFeat.type
 
             if translateCodingSeq==True and seqFeatType=="cds":
                 featSeqAA = Seq.Seq(''.join(dnaSeq)).translate()
@@ -122,27 +139,50 @@ def main():
             else:
                 ProductName = "Unknown"
 
-            if verbose==True:
-                if outputFormat=="fasta":
-                    print(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}")
-                    outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
-                elif outputFormat=="csv":
-                    print(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}")
-                    outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}\n")
-                elif outputFormat=="tsv":                        
-                    print(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}")
-                    outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\n")
+            if translateCodingSeq==True:
+                if verbose==True:
+                    if outputFormat=="fasta":
+                        print(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}")
+                        outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
+                    elif outputFormat=="csv":
+                        print(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc},{AASeqNuc}")
+                        outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc},{AASeqNuc}\n")
+                    elif outputFormat=="tsv":                        
+                        print(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\t{AASeqNuc}")
+                        outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\t{AASeqNuc}\n")
+                    else:
+                        pass
                 else:
-                    pass
+                    if outputFormat=="fasta":
+                        outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
+                    elif outputFormat=="csv":
+                        outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc},{AASeqNuc}\n")
+                    elif outputFormat=="tsv":
+                        outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\t{AASeqNuc}\n")
+                    else:
+                        pass
             else:
-                if outputFormat=="fasta":
-                    outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
-                elif outputFormat=="csv":
-                    outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}\n")
-                elif outputFormat=="tsv":
-                    outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\n")
+                if verbose==True:
+                    if outputFormat=="fasta":
+                        print(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}")
+                        outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
+                    elif outputFormat=="csv":
+                        print(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}")
+                        outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}\n")
+                    elif outputFormat=="tsv":
+                        print(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}")
+                        outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\n")
+                    else:
+                        pass
                 else:
-                    pass
+                    if outputFormat=="fasta":
+                        outputData.write(f">{seqName}___{locusTagName}___{GeneName} {ProductName}\n{featSeqNuc}\n")
+                    elif outputFormat=="csv":
+                        outputData.write(f"\"{seqName}\",\"{seqFeatType}\",\"{featSeqLenNuc}\",\"{locusTagName}\",\"{GeneName}\",\"{ProductName}\",{featSeqNuc}\n")
+                    elif outputFormat=="tsv":
+                        outputData.write(f"\"{seqName}\"\t\"{seqFeatType}\"\t\"{featSeqLenNuc}\"\t\"{locusTagName}\"\t\"{GeneName}\"\t\"{ProductName}\"\t{featSeqNuc}\n")
+                    else:
+                        pass
 
 if __name__=="__main__":
     main()
