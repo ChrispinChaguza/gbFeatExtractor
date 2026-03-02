@@ -39,7 +39,6 @@ def main():
 
     options=options.parse_args(args=None if sys.argv[2:] else ['--help'])
 
-
     cmdValues = {'inputfile': options.inputfile[0:][0],
                  'outputfile': options.outputfile[0:][0] if isinstance(options.outputfile,list) else options.outputfile,
                  'seqformat': options.seqformat[0:][0] if isinstance(options.seqformat,list) else options.seqformat,
